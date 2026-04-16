@@ -1,3 +1,4 @@
+
 plugins {
     id 'java'
     id 'org.springframework.boot' version '3.4.1'
@@ -7,6 +8,7 @@ plugins {
 
 group = 'com.eventdriven'
 version = '1.0-SNAPSHOT'
+
 
 java {
     toolchain {
@@ -39,6 +41,7 @@ tasks.named('test') {
     useJUnitPlatform()
     finalizedBy jacocoTestReport
 }
+
 
 jacocoTestReport {
     dependsOn test

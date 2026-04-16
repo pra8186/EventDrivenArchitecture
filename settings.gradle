@@ -1,1 +1,5 @@
 rootProject.name = 'eventdriven'
+
+include 'eureka-server'
+include 'core-service'
+include 'event-service'
