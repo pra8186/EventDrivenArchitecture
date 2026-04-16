@@ -4,16 +4,20 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 /**
- * A single event recorded in the in-memory log.
+ * Event payload published to Kafka and consumed by {@code EventConsumerService}.
+ * Must be Jackson-serializable (no-arg constructor + setters for deserialization).
  */
 public class EventEntry {
 
-    private final UUID eventId;
-    private final LocalDateTime timestamp;
-    private final String userId;
-    private final String resourceId;
-    private final EventType eventType;
-    private final String details;
+    private UUID eventId;
+    private LocalDateTime timestamp;
+    private String userId;
+    private String resourceId;
+    private EventType eventType;
+    private String details;
+
+    /** No-arg constructor required by Jackson deserialization. */
+    public EventEntry() {}
 
     public EventEntry(String userId, String resourceId, EventType eventType, String details) {
         this.eventId = UUID.randomUUID();
@@ -25,9 +29,15 @@ public class EventEntry {
     }
 
     public UUID getEventId() { return eventId; }
+    public void setEventId(UUID eventId) { this.eventId = eventId; }
     public LocalDateTime getTimestamp() { return timestamp; }
+    public void setTimestamp(LocalDateTime timestamp) { this.timestamp = timestamp; }
     public String getUserId() { return userId; }
+    public void setUserId(String userId) { this.userId = userId; }
     public String getResourceId() { return resourceId; }
+    public void setResourceId(String resourceId) { this.resourceId = resourceId; }
     public EventType getEventType() { return eventType; }
+    public void setEventType(EventType eventType) { this.eventType = eventType; }
     public String getDetails() { return details; }
+    public void setDetails(String details) { this.details = details; }
 }

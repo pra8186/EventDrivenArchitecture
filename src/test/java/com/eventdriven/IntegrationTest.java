@@ -403,6 +403,7 @@ class IntegrationTest {
     @Test
     void getEvents_returnsLoggedEvents() throws Exception {
         createTestUser("events@example.com", "enc-ssn-events");
+        Thread.sleep(3000); // wait for async Kafka consumer to persist
 
         mockMvc.perform(get("/api/events"))
                 .andExpect(status().isOk())
@@ -418,6 +419,7 @@ class IntegrationTest {
     @Test
     void getEvents_filterByType_returnsFiltered() throws Exception {
         createTestUser("evtype@example.com", "enc-ssn-evtype");
+        Thread.sleep(3000);
 
         mockMvc.perform(get("/api/events").param("type", "USER_CREATED"))
                 .andExpect(status().isOk())
@@ -427,6 +429,7 @@ class IntegrationTest {
     @Test
     void getEvents_filterByUser_returnsFiltered() throws Exception {
         String userId = createTestUser("evuser@example.com", "enc-ssn-evuser");
+        Thread.sleep(3000);
 
         mockMvc.perform(get("/api/events/user/" + userId))
                 .andExpect(status().isOk())

@@ -8,7 +8,7 @@ import com.eventdriven.dto.response.TaxProfileResponse;
 import com.eventdriven.dto.response.UserResponse;
 import com.eventdriven.dto.response.WorkDayEntryResponse;
 import com.eventdriven.entity.*;
-import com.eventdriven.event.EventLogService;
+import com.eventdriven.event.EventProducerService;
 import com.eventdriven.event.EventType;
 import com.eventdriven.repository.*;
 import org.springframework.stereotype.Service;
@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 
 /**
  * Business logic for users, tax profiles, work day entries, and validation.
- * Records events in the in-memory event log on every create, update, and validate.
+ * Publishes events to Kafka via {@link EventProducerService} on every create and validate.
  */
 @Service
 public class TaxService {
@@ -29,18 +29,18 @@ public class TaxService {
     private final StateRepository stateRepository;
     private final TaxProfileRepository taxProfileRepository;
     private final WorkDayEntryRepository workDayEntryRepository;
-    private final EventLogService eventLog;
+    private final EventProducerService eventProducer;
 
     public TaxService(UserRepository userRepository,
                       StateRepository stateRepository,
                       TaxProfileRepository taxProfileRepository,
                       WorkDayEntryRepository workDayEntryRepository,
-                      EventLogService eventLog) {
+                      EventProducerService eventProducer) {
         this.userRepository = userRepository;
         this.stateRepository = stateRepository;
         this.taxProfileRepository = taxProfileRepository;
         this.workDayEntryRepository = workDayEntryRepository;
-        this.eventLog = eventLog;
+        this.eventProducer = eventProducer;
     }
 
     // --- User ---
@@ -54,7 +54,7 @@ public class TaxService {
                 request.getSsnEncrypted()
         );
         User saved = userRepository.save(user);
-        eventLog.record(
+        eventProducer.publish(
                 saved.getUserId().toString(),
                 saved.getUserId().toString(),
                 EventType.USER_CREATED,
@@ -83,7 +83,7 @@ public class TaxService {
         FilingStatus filingStatus = FilingStatus.valueOf(request.getFilingStatus());
         TaxProfile profile = new TaxProfile(user, state, request.getTaxYear(), filingStatus);
         TaxProfile saved = taxProfileRepository.save(profile);
-        eventLog.record(
+        eventProducer.publish(
                 user.getUserId().toString(),
                 saved.getProfileId().toString(),
                 EventType.TAX_PROFILE_CREATED,
@@ -115,7 +115,7 @@ public class TaxService {
                 request.getIncome(), workType
         );
         WorkDayEntry saved = workDayEntryRepository.save(entry);
-        eventLog.record(
+        eventProducer.publish(
                 profile.getUser().getUserId().toString(),
                 saved.getEntryId().toString(),
                 EventType.WORK_ENTRY_CREATED,
@@ -157,7 +157,7 @@ public class TaxService {
         missing.removeAll(present);
 
         ValidationResult result = new ValidationResult(List.copyOf(present), List.copyOf(missing), missing.isEmpty());
-        eventLog.record(
+        eventProducer.publish(
                 userId.toString(),
                 userId.toString(),
                 EventType.PROFILE_VALIDATED,
